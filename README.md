@@ -5,4 +5,4 @@ Thanks to voxelizer from [karimnaaji](https://github.com/kctess5/voxelizer) and 
 
 - Learned from kctess5's voxelizer at the beginning and this appilcation is based on his framework. 
 - Rewirte the algorithm using in karimnaaji's voxelizer and accelerate it using cuda.
-- Implement marching cube algorithm and also accelerate it.
+- Implement marching cube algorithm in a special way to unvoxelize .binvox into .ply, supporting .pcd to .ply at the same time. Also accelerate it.
