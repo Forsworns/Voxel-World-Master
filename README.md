@@ -1,8 +1,24 @@
 # Voxel-World-Master
-this is a toy voxelizer and unvoxelizer project for studying.
+this is a toy voxelizer and unvoxelizer project for CS337 CG 
 
-Thanks to voxelizer from [karimnaaji](https://github.com/kctess5/voxelizer) and [kctess5](https://github.com/kctess5/voxelizer).
+- Learn from [kctess5's](https://github.com/kctess5/voxelizer) voxelizer at the beginning, and this appilcation is based on his framework. 
 
-- Learned from kctess5's voxelizer at the beginning and this appilcation is based on his framework. 
-- Rewirte the algorithm using in karimnaaji's voxelizer and accelerate it using cuda.
-- Implement marching cube algorithm in a special way to unvoxelize .binvox into .ply, supporting .pcd to .ply at the same time. Also accelerate it.
+- Rewirte another voxelizing algorithm using cuda.
+
+- Implement marching cube algorithm in a easy, special but effective way to unvoxelize .binvox into .ply, which supports .pcd to .ply at the same time. Also accelerate it.
+
+  
+
+---
+
+**original .obj** 
+
+![](D:\文档\大三上\图形学\AG\Voxel-World-Master\image\bone_obj.png)
+
+**.obj -> .binvox**
+
+![](D:\文档\大三上\图形学\AG\Voxel-World-Master\image\v\bone2.png)
+
+**.binvox -> .ply**
+
+![](D:\文档\大三上\图形学\AG\Voxel-World-Master\image\unv\bone256.png)
