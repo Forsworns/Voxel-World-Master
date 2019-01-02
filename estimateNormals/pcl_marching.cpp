@@ -59,15 +59,16 @@ int main(int argc, char** argv)
 	n.setKSearch(20);
 	n.compute(*normals); //计算法线，结果存储在normals中
 	//* normals 不能同时包含点的法向量和表面的曲率
-	
-	ofstream fout("D:\\文档\\大三上\\图形学\\AG\\unvoxelizer\\unvoxelizer\\normals.txt");
-	for (int i = 0; i < normals->points.size();++i) {
+
+	ofstream fout("__normals__.txt");
+	for (int i = 0; i < normals->points.size(); ++i) {
 		fout << normals->points[i] << endl;
 	}
-	
+	fout.close();
 
 
-	//将点云和法线放到一起
+	/*
+		//将点云和法线放到一起
 	pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals(new pcl::PointCloud<pcl::PointNormal>);
 	pcl::concatenateFields(*cloud, *normals, *cloud_with_normals);
 	//* cloud_with_normals = cloud + normals
@@ -80,15 +81,15 @@ int main(int argc, char** argv)
 	//初始化MarchingCubes对象，并设置参数
 	pcl::MarchingCubes<pcl::PointNormal> *mc;
 	mc = new pcl::MarchingCubesHoppe<pcl::PointNormal>();
-	/*
-  if (hoppe_or_rbf == 0)
-	mc = new pcl::MarchingCubesHoppe<pcl::PointNormal> ();
-  else
-  {
-	mc = new pcl::MarchingCubesRBF<pcl::PointNormal> ();
-	(reinterpret_cast<pcl::MarchingCubesRBF<pcl::PointNormal>*> (mc))->setOffSurfaceDisplacement (off_surface_displacement);
-  }
-	*/
+	
+	if (hoppe_or_rbf == 0)
+		mc = new pcl::MarchingCubesHoppe<pcl::PointNormal> ();
+	else
+	{
+		mc = new pcl::MarchingCubesRBF<pcl::PointNormal> ();
+		(reinterpret_cast<pcl::MarchingCubesRBF<pcl::PointNormal>*> (mc))->setOffSurfaceDisplacement (off_surface_displacement);
+	}
+	
 
 	//创建多变形网格，用于存储结果
 	pcl::PolygonMesh mesh;
@@ -118,6 +119,7 @@ int main(int argc, char** argv)
 		viewer->spinOnce(100);
 		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
 	}
+	*/
 
 	return (0);
 }

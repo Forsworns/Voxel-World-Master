@@ -198,7 +198,7 @@ void prepare(bool useGPU, Device::Point *result, const long long int &blockNum, 
 	// 求出了点云存在了points中
 
 	//输出点云
-	ofstream fout("test_32.ply");
+	ofstream fout("__to_cal_normal__.ply");
 	FOUT_LINE("ply");
 	FOUT_LINE("format ascii 1.0");
 	FOUT_POINT("element", "vertex", points.size());
@@ -217,7 +217,7 @@ void prepare(bool useGPU, Device::Point *result, const long long int &blockNum, 
 		estimateNormal(x);
 	}
 
-	fin.open("normals.txt");
+	fin.open("__normals__.txt");
 	vector<Point>::iterator it = points.begin();
 	while (!fin.eof()) {
 		if (it < points.end()) {
@@ -293,7 +293,7 @@ void useCpuToUnvoxelize(bool *voxel, bool *voxelThined, const int &dimX, const i
 void outputToPly(string fileName, vector<Triangle> &triangleVector) {
 	// ply格式输出
 	ofstream fout;
-	fout.open(fileName);
+	fout.open(fileName+".ply");
 	FOUT_LINE("ply");
 	FOUT_LINE("format ascii 1.0");
 	FOUT_POINT("element", "vertex", triangleVector.size() * 3);

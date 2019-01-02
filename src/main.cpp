@@ -40,6 +40,9 @@ struct VoxelizerArgs : Args {
 	float precision;
 	// width, height, depth;
 	int samples;
+	// for reconstruction
+	int file_type;
+	int pre, device, method, func;
 };
 
 enum ModelType
@@ -58,14 +61,20 @@ VoxelizerArgs * parseArgs(int argc, char *argv[]) {
 	TCLAP::UnlabeledValueArg<std::string> input( "input", "path to input (.obj, .binvox, .pcd)", true, "", "string");
 	TCLAP::UnlabeledValueArg<std::string> output("output","path to save", true, "", "string");
 
-	TCLAP::ValueArg<std::string> format("f", "format","voxel grid save format - obj|binvox", false, "binvox", "string");
+	TCLAP::ValueArg<std::string> format("q", "format","voxel grid save format - obj|binvox", false, "binvox", "string");
 	TCLAP::ValueArg<int> size(  "r","resolution", "voxelization resolution",  false, 32, "int");
-	TCLAP::ValueArg<int> precision("p", "precision", "reduces the artifact", false, 2.0f, "float");
+	TCLAP::ValueArg<int> precision("e", "precision", "reduces the artifact", false, 2.0f, "float");
 	TCLAP::ValueArg<int> samples( "s","samples", "number of sample rays per vertex",  false, -1, "int");
 
 	TCLAP::MultiSwitchArg verbosity( "v", "verbose", "Verbosity level. Multiple flags for more verbosity.");
-	TCLAP::SwitchArg double_thick( "d", "double", "Flag for processing double-thick meshes. Uses (num_intersections/2)%2 for occupancy checking.", false);
- 
+	TCLAP::SwitchArg double_thick( "o", "double", "Flag for processing double-thick meshes. Uses (num_intersections/2)%2 for occupancy checking.", false);
+
+	TCLAP::ValueArg<int> file_type("t", "type", "file type for reconstruction", false, 0, "int");
+	TCLAP::ValueArg<int> pre("p", "prepare","prepare-1, not-0", false, 1, "int");
+
+	TCLAP::ValueArg<int> device("d", "device", "CPU-0,GPU-1", false, 1, "int");
+	TCLAP::ValueArg<int> method("m", "method", "method1-1,method2-0", false, 0, "int");
+	TCLAP::ValueArg<int> func("f","function","reconstruction-0, voxelization-1", false, 1, "int");
 
 	// Add args to command line object and parse
 	cmd.add(input); cmd.add(output);  // order matters for positional args
@@ -73,6 +82,11 @@ VoxelizerArgs * parseArgs(int argc, char *argv[]) {
 	cmd.add(precision);
 	// cmd.add(width); cmd.add(height); cmd.add(depth); 
 	cmd.add(verbosity); cmd.add(samples); cmd.add(double_thick);
+	cmd.add(file_type);
+	cmd.add(pre);
+	cmd.add(device);
+	cmd.add(method);
+	cmd.add(func);
 	cmd.parse( argc, argv );
 
 	// store in wrapper struct
@@ -80,12 +94,14 @@ VoxelizerArgs * parseArgs(int argc, char *argv[]) {
 	args->output = output.getValue();
 	args->size   = size.getValue();
 	args->precision = precision.getValue();
-	// args->width  = width.getValue();
-	// args->height = height.getValue();
-	// args->depth  = depth.getValue();
 	args->samples  = samples.getValue();
 	args->verbosity  = verbosity.getValue();
 	args->double_thick  = double_thick.getValue();
+	args->file_type = file_type.getValue();
+	args->pre = pre.getValue();
+	args->device = device.getValue();
+	args->method = method.getValue();
+	args->func = func.getValue();
 
 	args->debug(1) << "input:     " << args->input  << std::endl;
 	args->debug(1) << "output:    " << args->output << std::endl;
@@ -101,12 +117,8 @@ VoxelizerArgs * parseArgs(int argc, char *argv[]) {
 		args->debug(0) << "Unknown file format specified, use one of: (o) obj, (b) binvox" << std::endl;
 	}
 
-
-	// args->debug(1) << "format:    " << args->format   << std::endl;
 	args->debug(1) << "size:      " << args->size   << std::endl;
 	args->debug(1) << "precision:     " << args->precision  << std::endl;
-	// args->debug(1) << "height:    " << args->height << std::endl;
-	// args->debug(1) << "depth:     " << args->height << std::endl;
 	args->debug(1) << "samples:   " << args->samples << std::endl;
 	args->debug(1) << "verbosity: " << args->verbosity << std::endl;
 	if (args->double_thick) args->debug(1) << "Processing mesh as double-thick." << std::endl;
@@ -227,9 +239,9 @@ extern void outputToPly(string,vector<Triangle> &);
 int main(int argc, char *argv[])
 {
 	VoxelizerArgs *args = parseArgs(argc, argv);
-	const bool useGPU = true; //之后考虑加入到命令行参数中
-	const bool useWhichMethod = false;
-	const bool voxelOrUnvoxel = false;
+	const bool useGPU = args->device;
+	const bool useWhichMethod = args->method;
+	const bool voxelOrUnvoxel = args->func;
 	
 	if (voxelOrUnvoxel) {
 		args->debug(0) << "\nLoading Mesh" << std::endl;
@@ -274,9 +286,10 @@ int main(int argc, char *argv[])
 		};
 	}
 	else {
+		bool isPrepare = args->pre;
 		ifstream fin;
 		string fileName;
-		ModelType modeType = BINVOX;
+		ModelType modeType = ModelType(args->file_type);
 		vector<Point> points;
 		float originX, originY, originZ;
 		double scale;
@@ -292,7 +305,7 @@ int main(int argc, char *argv[])
 		case BINVOX:
 		{
 			char title[12];
-			fileName = "bone1_128.binvox";
+			fileName = args->input.c_str();
 			fin.open(fileName, ios::binary);
 			if (!fin)
 			{
@@ -358,7 +371,7 @@ int main(int argc, char *argv[])
 		}
 		case PCD:
 		{
-			fileName = "L.pcd";
+			fileName = args->input.c_str();
 			dimX = 256;
 			dimY = 256;
 			dimZ = 256;
@@ -421,7 +434,7 @@ int main(int argc, char *argv[])
 		hilditchThin(voxel, voxelThined, dimX, dimY, dimZ);
 		Device::Point *voxelPointMap = new Device::Point[blockNum];
 		prepare(useGPU, voxelPointMap, blockNum, voxel, voxelThined, dimX, dimY, dimZ, points, originX, originY, originZ, scale, threhold, triangleVector);
-
+		if (isPrepare) return 0;
 		clock_t start = clock();
 		if (useGPU) {
 			kernel_wrapper_3(voxelThined, voxelPointMap, dimX, dimY, dimZ, originX, originY, originZ, scale, threhold, triangleVector);
@@ -430,7 +443,7 @@ int main(int argc, char *argv[])
 			useCpuToUnvoxelize(voxel, voxelThined, dimX, dimY, dimZ, originX, originY, originZ, scale, threhold, triangleVector);
 		}
 		args->debug(0) << "unvoxelize in: " << float(clock() - start) / CLOCKS_PER_SEC << " seconds\n正在保存至文件..." << std::endl;
-		outputToPly("output.ply", triangleVector);
+		outputToPly(args->output, triangleVector);
 	}
 	
 	return 0;
