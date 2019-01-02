@@ -13,7 +13,7 @@ this is a toy voxelizer and unvoxelizer project for CS337 CG
 
 **original .obj** 
 
-![](.\image\bone_obj.png)
+![](./image/bone_obj.png)
 
 **.obj -> .binvox**
 
